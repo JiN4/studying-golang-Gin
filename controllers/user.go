@@ -1,27 +1,48 @@
 package controllers
 
 import (
-	"studying-golang-Gin/models"
+	"net/http"
+	"strconv"
+
+	"github.com/JiN4/studying-golang-Gin/models"
+	"github.com/gin-gonic/gin"
 )
 
+var User = NewUser()
+
 // User is
-type User struct {
+type user struct {
 }
 
 // NewUser ...
-func NewUser() User {
-	return User{}
+func NewUser() user {
+	return user{}
 }
 
 // Get ...
-func (c User) Get(n int) interface{} {
-	repo := models.NewUserRepository()
-	user := repo.GetByID(n)
-	return user //userの構造体を返す
+func (u user) Get(c *gin.Context) {
+	n := c.Param("id")
+	id, err := strconv.Atoi(n)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, err)
+		return
+	}
+	if id <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"status": "id should be bigger than 0"})
+		return
+	}
+	user := models.UserRepository.GetByID(id)
+	// データを処理する
+	if user == nil {
+		c.JSON(http.StatusNotFound, gin.H{})
+		return
+	}
+	c.JSON(http.StatusOK, user)
 }
 
 // Create ...
-func (c User) Create(name string) {
-	repo := models.NewUserRepository()
-	repo.Create(name)
+func (u user) Create(c *gin.Context) {
+	name := c.PostForm("name")
+	models.UserRepository.Create(name)
+	c.Status(http.StatusCreated)
 }

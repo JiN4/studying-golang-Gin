@@ -5,6 +5,7 @@ import (
 	"github.com/go-xorm/xorm"
 )
 
+var UserRepository = userRepository{}
 var engine *xorm.Engine
 
 // User is
@@ -31,18 +32,21 @@ func NewUser(id int, username string) User {
 }
 
 // UserRepository is
-type UserRepository struct {
+type userRepository struct {
 }
 
 // NewUserRepository ...
-func NewUserRepository() UserRepository {
-	return UserRepository{}
+func NewUserRepository() userRepository {
+	return userRepository{}
 }
 
 // GetByID ...
-func (m UserRepository) GetByID(id int) *User {
+func (m userRepository) GetByID(id int) *User {
 	var user = User{ID: id}
-	has, _ := engine.Get(&user)
+	has, err := engine.Get(&user)
+	if err != nil {
+		panic(err)
+	}
 	if has {
 		return &user
 	}
@@ -50,7 +54,10 @@ func (m UserRepository) GetByID(id int) *User {
 }
 
 // Create ...
-func (m UserRepository) Create(name string) {
+func (m userRepository) Create(name string) {
 	var user = User{Username: name}
-	engine.Insert(&user)
+	_, err := engine.Insert(&user)
+	if err != nil {
+		panic(err)
+	}
 }
